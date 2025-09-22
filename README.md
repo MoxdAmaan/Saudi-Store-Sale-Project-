@@ -150,7 +150,7 @@ Monitor YoY and seasonal sales trends for proactive planning.
 
 This SQL project transformed raw retail sales data into business intelligence. By analyzing customers, products, employees, and sales channels, the study uncovered key revenue drivers and growth opportunities in the Saudi retail sector.
 
-#📌 These insights empower businesses to:
+# 📌 These insights empower businesses to:
 
 Improve customer retention & targeting
 
