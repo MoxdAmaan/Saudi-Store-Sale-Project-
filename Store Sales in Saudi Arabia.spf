@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ContentFilters</key>
+	<dict/>
+	<key>auto_connect</key>
+	<true/>
+	<key>data</key>
+	<dict>
+		<key>connection</key>
+		<dict>
+			<key>allowDataLocalInfile</key>
+			<integer>0</integer>
+			<key>database</key>
+			<string>Store_sales_sa</string>
+			<key>enableClearTextPlugin</key>
+			<integer>0</integer>
+			<key>host</key>
+			<string>localhost</string>
+			<key>name</key>
+			<string>localhost</string>
+			<key>rdbms_type</key>
+			<string>mysql</string>
+			<key>sslCACertFileLocation</key>
+			<string></string>
+			<key>sslCACertFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslCertificateFileLocation</key>
+			<string></string>
+			<key>sslCertificateFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslKeyFileLocation</key>
+			<string></string>
+			<key>sslKeyFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>type</key>
+			<string>SPTCPIPConnection</string>
+			<key>useSSL</key>
+			<integer>0</integer>
+			<key>user</key>
+			<string>root</string>
+		</dict>
+		<key>session</key>
+		<dict>
+			<key>connectionEncoding</key>
+			<string>utf8mb4</string>
+			<key>contentFilterV2</key>
+			<dict>
+				<key>children</key>
+				<array/>
+				<key>filterClass</key>
+				<string>groupNode</string>
+				<key>isConjunction</key>
+				<true/>
+			</dict>
+			<key>contentPageNumber</key>
+			<integer>1</integer>
+			<key>contentSelection</key>
+			<data>
+			YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0
+			b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRk
+			YXRhgAGoCwwXGBkaHiVVJG51bGzTDQ4PEBMWV05TLmtleXNaTlMu
+			b2JqZWN0c1YkY2xhc3OiERKAAoADohQVgASABYAHVHR5cGVUcm93
+			c18QHVNlbGVjdGlvbkRldGFpbFR5cGVOU0luZGV4U2V00hsPHB1c
+			TlNSYW5nZUNvdW50EACABtIfICEiWiRjbGFzc25hbWVYJGNsYXNz
+			ZXNaTlNJbmRleFNldKIjJFpOU0luZGV4U2V0WE5TT2JqZWN00h8g
+			JidcTlNEaWN0aW9uYXJ5oiYkAAgAEQAaACQAKQAyADcASQBMAFEA
+			UwBcAGIAaQBxAHwAgwCGAIgAigCNAI8AkQCTAJgAnQC9AMIAzwDR
+			ANMA2ADjAOwA9wD6AQUBDgETASAAAAAAAAACAQAAAAAAAAAoAAAA
+			AAAAAAAAAAAAAAABIw==
+			</data>
+			<key>contentSortColIsAsc</key>
+			<true/>
+			<key>contentViewport</key>
+			<string>{{0, 0}, {693, 473}}</string>
+			<key>isToolbarVisible</key>
+			<true/>
+			<key>queries</key>
+			<string>-- Store Sales in Saudi Arabia -- SQL PROJECT 
+
+Create Database Store_sales_sa;
+USE Store_sales_sa;
+
+CREATE TABLE customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_name VARCHAR(100),
+    customer_type VARCHAR(50),
+    gender VARCHAR(10),
+    city VARCHAR(50)
+);
+
+CREATE TABLE products (
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_name VARCHAR(100),
+    product_category VARCHAR(50)
+);
+
+
+CREATE TABLE orders (
+    order_id VARCHAR(20) PRIMARY KEY,   -- Invoice ID
+    customer_id INT,
+    product_id INT,
+    invoice_date DATE,
+    channel VARCHAR(50),
+    employee_name VARCHAR(100),
+    manager_name VARCHAR(100),
+    total_sales DECIMAL(10,2),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+);
+
+select * from customers;
+select * from products;
+select * from orders;
+
+-------------------------------------------------------------------------------
+-- Customer Insights
+
+-- 1) TOP Customer
+SELECT
+	c.customer_id,
+	c.customer_name,
+	 ROUND(SUM(o.total_sales),0) AS total_spent
+FROM 
+	customers c
+LEFT JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY customer_id,customer_name
+ORDER BY total_spent DESC
+LIMIT 10;
+	 
+-- 2) Gender-based insights
+SELECT 
+	COUNT(DISTINCT c.customer_id) as num_customers,
+	 c.gender,
+	 SUM(o.total_sales) as total_spent
+FROM 
+	customers c
+LEFT JOIN 
+	orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.gender
+ORDER BY total_spent DESC;
+
+-- 3) City-wise revenue
+SELECT 
+    c.city AS top_city,
+    SUM(o.total_sales) AS total_sales
+FROM 
+    customers c
+LEFT JOIN 
+    orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.city
+ORDER BY total_sales DESC;
+
+-- 4) Channel wise revenue 
+SELECT 
+	channel,
+	 COUNT(order_id) as toal_orders,
+	 SUM(total_sales) as total_sales
+FROM 
+	orders
+GROUP BY channel
+ORDER BY total_sales;
+
+-- 5) Total customers per city and avg sales
+SELECT 
+    c.city AS city,
+    COUNT(DISTINCT c.customer_id) AS total_customers,
+    AVG(o.total_sales) AS avg_sales
+FROM 
+    customers c
+LEFT JOIN 
+    orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.city
+ORDER BY avg_sales DESC;
+
+
+-------------------------------------------------------------------------------
+-- Product Insights
+-- 1) TOP Selling Product
+SELECT 
+	p.product_name,
+	SUM(o.total_sales) AS total_sales
+FROM 
+	products p 
+LEFT JOIN 
+	orders o
+ON p.product_id = o.product_id
+GROUP BY p.product_name, p.product_category
+ORDER BY total_sales DESC
+LIMIT 50;
+
+-- 2) TOP  Product Category
+SELECT 
+	p.product_category,
+	SUM(o.total_sales) AS total_sales
+FROM 
+	products p 
+LEFT JOIN 
+	orders o
+ON p.product_id = o.product_id
+GROUP BY p.product_name, p.product_category
+ORDER BY total_sales DESC
+LIMIT 50;
+
+-- 3) AVG Revenue per product
+SELECT 
+	p.product_name,
+	AVG(o.total_sales) AS avg_sales
+FROM 
+	products p 
+LEFT JOIN 
+	orders o
+ON p.product_id = o.product_id
+GROUP BY 
+	p.product_name
+ORDER BY 
+	avg_sales DESC
+LIMIT 50;
+
+-- 4) Products by sales channel
+SELECT 
+    channel,
+    COUNT(order_id) AS total_orders,
+    SUM(total_sales) AS total_sales
+FROM 
+    orders
+GROUP BY channel
+ORDER BY total_sales DESC;
+
+
+-------------------------------------------------------------------------------
+-- Employee &amp; Manager Analysis
+-- 1) Top-performing employees
+SELECT 
+	employee_name,
+	sum(total_sales) as total_sales
+FROM orders 
+GROUP BY 
+	employee_name
+ORDER BY total_sales DESC ;
+
+
+-- 2) Top-performing manager
+SELECT 
+	manager_name,
+	sum(total_sales) as total_sales
+FROM orders 
+GROUP BY 
+	manager_name
+ORDER BY total_sales DESC ;
+
+-- 3) Average revenue per employee
+SELECT 
+	employee_name,
+	avg(total_sales) AS avg_sales
+FROM orders 
+GROUP BY 
+	employee_name
+ORDER BY avg_sales DESC ;
+
+
+-- 4) Employee performance by channel
+SELECT 
+	employee_name,
+	channel,
+	COUNT(order_id) AS total_orders,
+	SUM(total_sales) AS total_sales
+FROM orders
+GROUP BY employee_name, channel
+ORDER BY total_sales DESC;
+
+
+-- 5) Manager performance by channel
+SELECT 
+	manager_name,
+	channel,
+	COUNT(order_id) AS total_orders,
+	SUM(total_sales) AS total_sales
+FROM orders
+GROUP BY manager_name, channel
+ORDER BY total_sales DESC;
+
+
+-- Best-selling YEAR (highest avg sales)
+
+
+SELECT *
+FROM (
+    SELECT 
+        YEAR(invoice_date) AS year,
+        ROUND(AVG(total_sales), 2) AS avg_sales,
+        RANK() OVER (
+            PARTITION BY YEAR(invoice_date) 
+            ORDER BY AVG(total_sales) DESC
+        ) AS rank_num
+    FROM orders
+    GROUP BY YEAR(invoice_date)
+) AS t1
+WHERE rank_num = 1
+ORDER BY year;
+
+
+
+
+</string>
+			<key>view</key>
+			<string>SP_VIEW_CUSTOMQUERY</string>
+			<key>windowVerticalDividerPosition</key>
+			<real>0.0</real>
+		</dict>
+	</dict>
+	<key>encrypted</key>
+	<false/>
+	<key>format</key>
+	<string>connection</string>
+	<key>queryFavorites</key>
+	<array/>
+	<key>rdbms_type</key>
+	<string>mysql</string>
+	<key>rdbms_version</key>
+	<string>8.0.34</string>
+	<key>version</key>
+	<integer>1</integer>
+</dict>
+</plist>
